@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Extractor</title>
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.17/dist/tailwind.min.css">
+</head>
+
+<body>
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold mt-8">Keyword Extractor</h1>
+        <form class="mt-8">
+            <label class="block mb-2 font-bold" for="query-input">Search Query:</label>
+            <input
+                class="block w-full border border-gray-400 rounded py-2 px-4 mb-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                id="query-input" type="text" placeholder="Enter a search query">
+            <button
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="button" onclick="fetchKeywords()">Extract Keywords</button>
+        </form>
+        <div id="chart-container" class="mt-8">
+            <div id="chart"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.29.0"></script>
+    <script>
+async function fetchKeywords() {
+  const queryInput = document.getElementById('query-input');
+  const query = queryInput.value;
+  
+  const url = `http://185.13.36.24:7777/keywords?query=${encodeURIComponent(query)}`;
+  console.log(`Requesting URL: ${url}`);
+  
+  const response = await fetch(url, { mode: 'cors' });
+
+  if (response.ok) {
+    console.log('Response received successfully');
+    const keywords = await response.json();
+    console.log(`Received ${keywords.length} keywords`);
+    const chartData = keywords.map(item => {
+      const [name, value] = item.split(':');
+      return {
+        x: name,
+        y: parseInt(value)
+      };
+    });
+
+    const chartContainer = document.getElementById('chart-container');
+    if (chartContainer && document.readyState === 'complete') {
+      console.log('Chart container found and page is loaded');
+      
+      const chartOptions = {
+        series: [{
+          data: chartData
+        }],
+        chart: {
+          height: 500,
+          type: 'bar',
+          toolbar: {
+            show: false
+          }
+        },
+        plotOptions: {
+          bar: {
+            horizontal: true
+          }
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val) {
+            return val.y;
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ['#304758']
+          }
+        },
+        xaxis: {
+          categories: chartData.map(item => item.x),
+          title: {
+            text: 'Number of occurrences'
+          },
+          labels: {
+            formatter: function (val) {
+              return val;
+            }
+          }
+        },
+        yaxis: {
+          title: {
+            text: 'Keywords'
+          }
+        },
+        tooltip: {
+          x: {
+            formatter: function (val) {
+              return val;
+            }
+          }
+        }
+      };
+      
+      const chart = new ApexCharts(document.getElementById('chart'), chartOptions);
+      chart.render();
+    } else {
+      console.error('Chart container not found or page is not loaded');
+    }
+  } else {
+    console.error(`Failed to fetch data. Status code: ${response.status}`);
+    alert('Something went wrong!');
+  }
+}
+
+
+
+</script>
+</body>
+</html>
