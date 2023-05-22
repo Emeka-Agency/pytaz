@@ -63,7 +63,6 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
                         # "density": density(word_frequencies(data.get('html', '')).most_common(nb_keywords), data.get('html', '')),
                         "content": data.get('html', None),
                         "nb_words": len(data.get('text', None).split(' ')),
-                        "texti": data.get('texti', None).split(' '),
                         "title": data.get('title', None),
                         "descr": data.get('descr', None),
                         "headings": data.get('headings', None),
