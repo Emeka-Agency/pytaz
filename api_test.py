@@ -66,6 +66,7 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
                         "title": data.get('title', None),
                         "descr": data.get('descr', None),
                         "headings": data.get('headings', None),
+                        "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == data.get('url', None)][0],
                         "url": data.get('url', None),
                     } for data in contents]
                 }
