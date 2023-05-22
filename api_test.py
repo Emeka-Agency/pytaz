@@ -62,7 +62,8 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
                         "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
                         # "density": density(word_frequencies(data.get('html', '')).most_common(nb_keywords), data.get('html', '')),
                         "content": data.get('html', None),
-                        "nb_words": len(data.get('content', None).split(' ')),
+                        "nb_words": len(data.get('text', None).split(' ')),
+                        "texti": data.get('texti', None).split(' '),
                         "title": data.get('title', None),
                         "descr": data.get('descr', None),
                         "headings": data.get('headings', None),
@@ -78,14 +79,6 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
         return Response(
             status_code=500
         )
-        
-
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7777)
-    
-    
-    
-    
-    
-
+    uvicorn.run(app, host="127.0.0.1", port=1234)

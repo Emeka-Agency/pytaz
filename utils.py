@@ -45,10 +45,11 @@ def get_content_list(urls: list) -> list:
                     contents.append({
                         "content": content,
                         "url": url,
+                        "text": trafilatura.extract(content, include_images=False),
                         "html": trafilatura.extract(content),
                         "title": extract_title_from_html(content),
                         "descr": extract_descr_from_html(content),
-                        "headings": extract_headings_from_html(content),
+                        "headings": extract_headings_from_html(content), 
                     })
                 else:
                     print(f"can't get content from url: {url}")
