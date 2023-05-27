@@ -31,7 +31,28 @@ def get_content(url: str) -> str:
         print(f"can't get content from url: {url}")
         return None
 
-
+def get_url_content(url:str) -> str:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(get_content, url)
+        try:
+            content = future.result()
+            if content is not None:
+                return {
+                    "content": content,
+                    "url": url,
+                    "text": trafilatura.extract(content, include_images=False),
+                    "html": trafilatura.extract(content),
+                    "title": extract_title_from_html(content),
+                    "descr": extract_descr_from_html(content),
+                    "headings": extract_headings_from_html(content), 
+                }
+            else:
+                print(f"can't get content from url")
+                return ""
+        except Exception as e:
+            print(e)
+            print(f"can't get content from url")
+            return ""
 
 def get_content_list(urls: list) -> list:
     contents = []

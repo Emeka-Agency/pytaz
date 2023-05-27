@@ -4,7 +4,7 @@ from typing import List
 import seaborn as sns
 import matplotlib.pyplot as plt
 from stopwords_list import stop_words
-from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html
+from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html, get_url_content
 from fastapi.middleware.cors import CORSMiddleware
 import json
 
@@ -79,6 +79,28 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
         return Response(
             status_code=500
         )
+
+@app.post("/my-content")
+async def get_my_content(request: dict, gl: str = "fr", hl: str = "fr"):
+    try:
+        url = request.get('url', None)
+        print("request:", url)
+        content = get_url_content(url)
+        return Response(
+            status_code=200,
+            content=json.dumps({
+                "status": "success",
+                "datas": content
+            })
+        )
+    except Exception as e:
+        print(e)
+        import traceback
+        traceback.print_exc()
+        return Response(
+            status_code=500
+        )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=7777)
