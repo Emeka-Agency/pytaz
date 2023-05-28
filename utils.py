@@ -11,11 +11,45 @@ from bs4 import BeautifulSoup
 API_KEY = 'eccc0d4e0381f0384b60f9b7409529e9c6e12f13'
 CONTENT_TYPE = 'application/json'
 
+PATTERNS = [
+    '/blog/',
+    '/blogs/',
+    '/blog-posts/',
+    '/blogs-posts/',
+    '/article-de-blog/',
+    '/article-de-blogs/',
+    '/articles-de-blog/',
+    '/articles-de-blogs/',
+    '/article/',
+    '/articles/',
+    '/thought/',
+    '/thoughts/',
+    '/reflexion/',
+    '/reflexions/',
+    '/journal/',
+    '/journaux/',
+    '/update/',
+    '/updates/',
+    '/mise-a-jour/',
+    '/mises-a-jour/',
+    '/mises-a-jour/',
+    '/news/',
+    '/nouvelles/',
+    '/actualité/',
+    '/actualités/',
+    '/ideas/',
+    '/idees/',
+    '/post/',
+    '/posts/',
+    '/publication/',
+    '/publications/',
+]
 
-def fetch_google_search_results(query: str, gl: str, hl: str) -> dict:
+
+def fetch_google_search_results(query: str, gl: str, hl: str, num: int = 10) -> dict:
     url = "https://google.serper.dev/search"
     headers = {'X-API-KEY': API_KEY, 'Content-Type': CONTENT_TYPE}
-    payload = json.dumps({"q": query, "gl": gl, "hl": hl})
+    payload = json.dumps({"q": query, "gl": gl, "hl": hl, "num": num, "autocorrect": False})
     response = requests.post(url, headers=headers, data=payload)
     response = json.loads(response.text)
     return {
@@ -78,7 +112,8 @@ def get_content_list(urls: list) -> list:
                 print(f"can't get content from url: {url}")
     return contents
 
-
+def filter_backlinks(backlinks: list, patterns: list = PATTERNS, offset: int = 0) -> list:
+    return [{"index": index + offset + 1, "url": backlinks[index]} for index in range(0, len(backlinks)) if any(pattern in backlinks[index] for pattern in patterns)]
 
 def preprocess_content(contents: list, stop_words: set) -> FreqDist:
     filtered_tokens = [

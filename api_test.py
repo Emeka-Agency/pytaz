@@ -4,7 +4,7 @@ from typing import List
 import seaborn as sns
 import matplotlib.pyplot as plt
 from stopwords_list import stop_words
-from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html, get_url_content
+from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html, get_url_content, filter_backlinks
 from fastapi.middleware.cors import CORSMiddleware
 import json
 
@@ -42,10 +42,18 @@ def keywords_list(txt:str, nb_urls:int, nb_keywords:int):
 async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WORDS):
     try:
         print("query:", query)
-        serper = fetch_google_search_results(query, gl, hl)
+        serper = fetch_google_search_results(query, gl, hl, num=100)
         print(f"number of urls: {len(serper)}")
-        contents = get_content_list([item.get('link', None) for item in serper.get('organic', {})])
+        contents = get_content_list([item.get('link', None) for item in serper.get('organic', [])[:10]])
+        content_urls_position = [{"index": index + 1, "url": item.get('url', None)} for index, item in enumerate(contents)]
         print(f"number of contents: {len(contents)}")
+        nb_urls = len(contents)
+        print(f"extraxt backlinks")
+        backlinks = filter_backlinks([item.get('link', None) for item in serper.get('organic', [])[11:100]], offset = 10)
+        print(f"number of backlinks: {len(backlinks)}")
+        print(f"extraxt backlinks content")
+        backlinks_content = get_content_list([item.get('url', None) for item in backlinks[:10]])
+        print(f"number of backlinks content: {len(backlinks_content)}")
         nb_urls = len(contents)
         full_content = ' '.join([data.get('html', '') for data in contents])
         return Response(
@@ -60,7 +68,6 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
                     "related": serper.get('related', {}),
                     "concurrents": [{
                         "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
-                        # "density": density(word_frequencies(data.get('html', '')).most_common(nb_keywords), data.get('html', '')),
                         "content": data.get('html', None),
                         "nb_words": len(data.get('text', None).split(' ')),
                         "title": data.get('title', None),
@@ -68,7 +75,19 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
                         "headings": data.get('headings', None),
                         "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == data.get('url', None)][0],
                         "url": data.get('url', None),
-                    } for data in contents]
+                        "position": [item.get('index', None) for item in content_urls_position if item.get('url', None) == data.get('url', None)][0],
+                    } for data in contents],
+                    "backlinks": [{
+                        "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
+                        "content": backlinks_content[index].get('html', None),
+                        "nb_words": len(backlinks_content[index].get('text', None).split(' ')),
+                        "title": backlinks_content[index].get('title', None),
+                        "descr": backlinks_content[index].get('descr', None),
+                        "headings": backlinks_content[index].get('headings', None),
+                        "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == backlinks_content[index].get('url', None)][0],
+                        "url": backlinks_content[index].get('url', None),
+                        "position": [item.get('index', None) for item in backlinks if item.get('url', None) == backlinks_content[index].get('url', None)][0],
+                    } for index in range(0, len(backlinks_content))],
                 }
             })
         )
