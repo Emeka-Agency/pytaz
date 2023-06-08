@@ -45,11 +45,17 @@ def get_url_content(url:str) -> str:
                 }
             else:
                 print(f"can't get content from url")
-                return ""
+                return {
+                "status": "error",
+                "message": "else"
+            }
         except Exception as e:
             print(e)
             print(f"can't get content from url")
-            return ""
+            return {
+                "status": "error",
+                "message": str(e)
+            }
 
 def get_content_list(urls: list) -> list:
     contents = []

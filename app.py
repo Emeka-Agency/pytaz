@@ -1,48 +1,42 @@
-import uvicorn
-from fastapi import FastAPI, Response
-from typing import List
-import seaborn as sns
-import matplotlib.pyplot as plt
+"""
+A sample Hello World server.
+"""
+import os
+
+from flask import Flask, render_template, Response, request
+from flask_cors import CORS
 from stopwords_list import stop_words
 from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html, get_url_content, filter_backlinks
-from fastapi.middleware.cors import CORSMiddleware
 import json
+
+# pylint: disable=C0103
+app = Flask(__name__)
+CORS(app)
 
 NB_WORDS = 75
 
-app = FastAPI()
-origins = [
-    # "https://taz.kevinlesieutre.com",
-    "*"
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 def word_frequencies(txt: str):
-    # print("word_frequencies")
+    print("word_frequencies")
     return preprocess_content(txt, stop_words)
 
 def sanitize_text(txt: list):
-    # print("sanitize_keywords_list")
+    print("sanitize_keywords_list")
     return remove_punctuation_and_numerics(txt)
 
 def keywords_list(txt:str, nb_urls:int, nb_keywords:int):
-    # print("keywords_list")
+    print("keywords_list")
     most_common_keywords = sanitize_text(word_frequencies(txt)).most_common(nb_keywords)
     avg_frequencies = {word: freq/nb_urls + int(freq % nb_urls != 0) for word, freq in most_common_keywords}
     return [f"{word}:{freq}" for word, freq in avg_frequencies.items()]
 
 @app.get("/keywords")
-async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WORDS):
+async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WORDS):
+    import time
+    start = time.time()
     try:
-        print("query:", query)
-        serper = fetch_google_search_results(query, gl, hl, num=100)
+        words = request.args.get("query")
+        print("query:", words)
+        serper = fetch_google_search_results(words, gl, hl, num=100)
         print(f"number of urls: {len(serper)}")
         contents = get_content_list([item.get('link', None) for item in serper.get('organic', [])[:10]])
         content_urls_position = [{"index": index + 1, "url": item.get('url', None)} for index, item in enumerate(contents)]
@@ -56,11 +50,16 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
         print(f"number of backlinks content: {len(backlinks_content)}")
         nb_urls = len(contents)
         full_content = ' '.join([data.get('html', '') for data in contents])
+        print(time.time() - start)
         return Response(
-            status_code=200,
-            content=json.dumps({
+            status=200,
+            response=json.dumps({
                 "status": "success",
                 "datas": {
+                    "len_serper": len(serper),
+                    "len_contents": len(contents),
+                    "len_backlinks": len(backlinks),
+                    "len_backlinks_content": len(backlinks_content),
                     "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
                     "density": density(word_frequencies(full_content).most_common(nb_keywords), full_content),
                     "urls": [item.get('link', None) for item in serper.get('organic', {})],
@@ -93,34 +92,37 @@ async def get_keywords(query: str, gl: str = "fr", hl: str = "fr", nb_keywords: 
         )
     except Exception as e:
         print(e)
-        import traceback
-        traceback.print_exc()
         return Response(
-            status_code=500
+            status=500,
+            response=json.dumps({
+                "status": "error",
+                "datas": str(e)
+            })
         )
 
 @app.post("/my-content")
-async def get_my_content(request: dict, gl: str = "fr", hl: str = "fr"):
+async def get_my_content(gl: str = "fr", hl: str = "fr"):
     try:
-        url = request.get('url', None)
+        url = request.get_json()['url']
         print("request:", url)
         content = get_url_content(url)
         return Response(
-            status_code=200,
-            content=json.dumps({
+            status=200,
+            response=json.dumps({
                 "status": "success",
                 "datas": content
             })
         )
     except Exception as e:
-        print(e)
-        import traceback
-        traceback.print_exc()
         return Response(
-            status_code=500
+            status=500,
+            response=json.dumps({
+                "status": "error",
+                "message": "testis",
+                "error": str(e)
+            })
         )
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8877)
-    # uvicorn.run(app, host="0.0.0.0", port=8877, ssl_context=('cert.pem', 'key.pem'))
+if __name__ == '__main__':
+    server_port = os.environ.get('PORT', '8877')
+    app.run(debug=False, port=server_port, host='0.0.0.0')

@@ -1,0 +1,5 @@
+Flask
+flask[async]
+flask_cors
+requests
+debugpy
