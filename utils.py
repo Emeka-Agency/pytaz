@@ -7,44 +7,7 @@ import concurrent.futures
 import string
 from bs4 import BeautifulSoup
 
-
-API_KEY = 'eccc0d4e0381f0384b60f9b7409529e9c6e12f13'
-CONTENT_TYPE = 'application/json'
-
-PATTERNS = [
-    '/blog/',
-    '/blogs/',
-    '/blog-posts/',
-    '/blogs-posts/',
-    '/article-de-blog/',
-    '/article-de-blogs/',
-    '/articles-de-blog/',
-    '/articles-de-blogs/',
-    '/article/',
-    '/articles/',
-    '/thought/',
-    '/thoughts/',
-    '/reflexion/',
-    '/reflexions/',
-    '/journal/',
-    '/journaux/',
-    '/update/',
-    '/updates/',
-    '/mise-a-jour/',
-    '/mises-a-jour/',
-    '/mises-a-jour/',
-    '/news/',
-    '/nouvelles/',
-    '/actualité/',
-    '/actualités/',
-    '/ideas/',
-    '/idees/',
-    '/post/',
-    '/posts/',
-    '/publication/',
-    '/publications/',
-]
-
+from const import API_KEY, CONTENT_TYPE, PATTERNS
 
 def fetch_google_search_results(query: str, gl: str, hl: str, num: int = 10) -> dict:
     url = "https://google.serper.dev/search"

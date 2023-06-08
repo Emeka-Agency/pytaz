@@ -122,4 +122,5 @@ async def get_my_content(request: dict, gl: str = "fr", hl: str = "fr"):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7777)
+    uvicorn.run(app, host="0.0.0.0", port=8877)
+    # uvicorn.run(app, host="0.0.0.0", port=8877, ssl_context=('cert.pem', 'key.pem'))
