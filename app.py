@@ -66,7 +66,8 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
                     "paa": serper['paa'],
                     "related": serper.get('related', {}),
                     "concurrents": [{
-                        "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
+                        "occurences": {word: full_content.count(word) for word, freq in word_frequencies(full_content).most_common(50)},
+                        "keywords_list": keywords_list(data.get('html', None), nb_urls, nb_keywords),
                         "content": data.get('html', None),
                         "nb_words": len(data.get('text', None).split(' ')),
                         "title": data.get('title', None),
