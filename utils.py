@@ -44,14 +44,14 @@ def get_url_content(url:str) -> str:
                     "headings": extract_headings_from_html(content), 
                 }
             else:
-                print(f"can't get content from url")
+                # print(f"can't get content from url")
                 return {
                 "status": "error",
                 "message": "else"
             }
         except Exception as e:
-            print(e)
-            print(f"can't get content from url")
+            # print(e)
+            # print(f"can't get content from url")                                                  
             return {
                 "status": "error",
                 "message": str(e)
@@ -116,7 +116,7 @@ def extract_descr_from_html(html: str) -> str:
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find("meta",  property="og:description").get("content", None)
     except Exception as e:
-        print(e)
+        # print(e)
         return "Pas de description"
 
 def extract_headings_from_html(html: str) -> list:

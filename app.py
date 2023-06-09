@@ -9,6 +9,15 @@ from stopwords_list import stop_words
 from utils import fetch_google_search_results, get_content_list, preprocess_content, remove_punctuation_and_numerics, density, extract_content_from_html, extract_title_from_html, extract_descr_from_html, extract_headings_from_html, get_url_content, filter_backlinks
 import json
 
+import logging
+import urllib3
+
+
+#disable all logging from urllib3
+
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+urllib3.disable_warnings()
+
 # pylint: disable=C0103
 app = Flask(__name__)
 CORS(app)
@@ -16,15 +25,15 @@ CORS(app)
 NB_WORDS = 75
 
 def word_frequencies(txt: str):
-    print("word_frequencies")
+    # print("word_frequencies")
     return preprocess_content(txt, stop_words)
 
 def sanitize_text(txt: list):
-    print("sanitize_keywords_list")
+    # print("sanitize_keywords_list")
     return remove_punctuation_and_numerics(txt)
 
 def keywords_list(txt:str, nb_urls:int, nb_keywords:int):
-    print("keywords_list")
+    # print("keywords_list")
     most_common_keywords = sanitize_text(word_frequencies(txt)).most_common(nb_keywords)
     avg_frequencies = {word: freq/nb_urls + int(freq % nb_urls != 0) for word, freq in most_common_keywords}
     return [f"{word}:{freq}" for word, freq in avg_frequencies.items()]
@@ -42,10 +51,10 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
         content_urls_position = [{"index": index + 1, "url": item.get('url', None)} for index, item in enumerate(contents)]
         print(f"number of contents: {len(contents)}")
         nb_urls = len(contents)
-        print(f"extraxt backlinks")
+        # print(f"extraxt backlinks")
         backlinks = filter_backlinks([item.get('link', None) for item in serper.get('organic', [])[11:100]], offset = 10)
-        print(f"number of backlinks: {len(backlinks)}")
-        print(f"extraxt backlinks content")
+        # print(f"Number of backlinks: {len(backlinks)}")
+        # print(f"extraxt backlinks content")
         backlinks_content = get_content_list([item.get('url', None) for item in backlinks[:10]])
         print(f"number of backlinks content: {len(backlinks_content)}")
         nb_urls = len(contents)
@@ -87,12 +96,12 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
                         "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == backlinks_content[index].get('url', None)][0],
                         "url": backlinks_content[index].get('url', None),
                         "position": [item.get('index', None) for item in backlinks if item.get('url', None) == backlinks_content[index].get('url', None)][0],
-                    } for index in range(0, len(backlinks_content))],
+                    } for index in range(len(backlinks_content))],
                 }
             })
         )
     except Exception as e:
-        print(e)
+        # print(e)
         return Response(
             status=500,
             response=json.dumps({
