@@ -1,0 +1,11 @@
+Flask
+requests
+debugpy # Required for debugging.
+trafilatura
+nltk
+bs4
+typing
+seaborn
+matplotlib
+uvicorn
+fastapi
