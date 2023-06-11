@@ -60,45 +60,47 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
         nb_urls = len(contents)
         full_content = ' '.join([data.get('html', '') for data in contents])
         print(time.time() - start)
+        response = {
+            "status": "success",
+            "datas": {
+                "len_serper": len(serper),
+                "len_contents": len(contents),
+                "len_backlinks": len(backlinks),
+                "len_backlinks_content": len(backlinks_content),
+                "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
+                "density": density(word_frequencies(full_content).most_common(nb_keywords), full_content),
+                "urls": [item.get('link', None) for item in serper.get('organic', {})],
+                "paa": serper['paa'],
+                "related": serper.get('related', {}),
+                "concurrents": [{
+                    "occurences": {word: full_content.count(word) for word, freq in word_frequencies(full_content).most_common(50)},
+                    "keywords_list": keywords_list(data.get('html', None), nb_urls, nb_keywords),
+                    "content": data.get('html', None),
+                    "nb_words": len(data.get('text', None).split(' ')),
+                    "title": data.get('title', None),
+                    "descr": data.get('descr', None),
+                    "headings": data.get('headings', None),
+                    "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == data.get('url', None)][0],
+                    "url": data.get('url', None),
+                    "position": [item.get('index', None) for item in content_urls_position if item.get('url', None) == data.get('url', None)][0],
+                } for data in contents],
+                "backlinks": [{
+                    "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
+                    "content": backlinks_content[index].get('html', None),
+                    "nb_words": len(backlinks_content[index].get('text', None).split(' ')),
+                    "title": backlinks_content[index].get('title', None),
+                    "descr": backlinks_content[index].get('descr', None),
+                    "headings": backlinks_content[index].get('headings', None),
+                    "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == backlinks_content[index].get('url', None)][0],
+                    "url": backlinks_content[index].get('url', None),
+                    "position": [item.get('index', None) for item in backlinks if item.get('url', None) == backlinks_content[index].get('url', None)][0],
+                } for index in range(len(backlinks_content))],
+            },
+            "pytime": time.time() - start
+        }
         return Response(
             status=200,
-            response=json.dumps({
-                "status": "success",
-                "datas": {
-                    "len_serper": len(serper),
-                    "len_contents": len(contents),
-                    "len_backlinks": len(backlinks),
-                    "len_backlinks_content": len(backlinks_content),
-                    "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
-                    "density": density(word_frequencies(full_content).most_common(nb_keywords), full_content),
-                    "urls": [item.get('link', None) for item in serper.get('organic', {})],
-                    "paa": serper['paa'],
-                    "related": serper.get('related', {}),
-                    "concurrents": [{
-                        "occurences": {word: full_content.count(word) for word, freq in word_frequencies(full_content).most_common(50)},
-                        "keywords_list": keywords_list(data.get('html', None), nb_urls, nb_keywords),
-                        "content": data.get('html', None),
-                        "nb_words": len(data.get('text', None).split(' ')),
-                        "title": data.get('title', None),
-                        "descr": data.get('descr', None),
-                        "headings": data.get('headings', None),
-                        "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == data.get('url', None)][0],
-                        "url": data.get('url', None),
-                        "position": [item.get('index', None) for item in content_urls_position if item.get('url', None) == data.get('url', None)][0],
-                    } for data in contents],
-                    "backlinks": [{
-                        "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
-                        "content": backlinks_content[index].get('html', None),
-                        "nb_words": len(backlinks_content[index].get('text', None).split(' ')),
-                        "title": backlinks_content[index].get('title', None),
-                        "descr": backlinks_content[index].get('descr', None),
-                        "headings": backlinks_content[index].get('headings', None),
-                        "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == backlinks_content[index].get('url', None)][0],
-                        "url": backlinks_content[index].get('url', None),
-                        "position": [item.get('index', None) for item in backlinks if item.get('url', None) == backlinks_content[index].get('url', None)][0],
-                    } for index in range(len(backlinks_content))],
-                }
-            })
+            response=json.dumps(response)
         )
     except Exception as e:
         # print(e)
