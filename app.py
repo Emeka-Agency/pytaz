@@ -95,8 +95,8 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
                     "url": backlinks_content[index].get('url', None),
                     "position": [item.get('index', None) for item in backlinks if item.get('url', None) == backlinks_content[index].get('url', None)][0],
                 } for index in range(len(backlinks_content))],
+                "pytime": time.time() - start
             },
-            "pytime": time.time() - start
         }
         return Response(
             status=200,
