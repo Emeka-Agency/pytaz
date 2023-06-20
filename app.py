@@ -48,7 +48,6 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
         serper = fetch_google_search_results(words, gl, hl, num=100)
         print(f"number of urls: {len(serper)}")
         contents = get_content_list([item.get('link', None) for item in serper.get('organic', [])[:10]])
-        content_urls_position = [{"index": index + 1, "url": item.get('url', None)} for index, item in enumerate(contents)]
         print(f"number of contents: {len(contents)}")
         nb_urls = len(contents)
         # print(f"extraxt backlinks")
@@ -82,7 +81,7 @@ async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WOR
                     "headings": data.get('headings', None),
                     "snippet": [item.get('snippet', None) for item in serper.get('organic', {}) if item.get('link', None) == data.get('url', None)][0],
                     "url": data.get('url', None),
-                    "position": [item.get('index', None) for item in content_urls_position if item.get('url', None) == data.get('url', None)][0],
+                    "position": [item.get('position', None) for item in serper.get('organic', []) if item.get('link', None) == data.get('url', None)][0],
                 } for data in contents],
                 "backlinks": [{
                     # "keywords_list": keywords_list(full_content, nb_urls, nb_keywords),
