@@ -24,6 +24,11 @@ def fetch_google_search_results(query: str, gl: str, hl: str, num: int = 10) -> 
 def get_content(url: str) -> str:
     try:
         return trafilatura.fetch_url(url)
+        # return trafilatura.fetch_url(url, http_headers={"User-Agent": "Mozilla/5.0"}, timeout=3)
+        # return requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=3).text
+    except trafilatura.TrafilaturaException:
+        print(f"Can't get content from URL: {url}")
+        return None
     except:
         print(f"can't get content from url: {url}")
         return None
@@ -59,7 +64,8 @@ def get_url_content(url:str) -> str:
 
 def get_content_list(urls: list) -> list:
     contents = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    num_workers = 10
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         future_to_url = {executor.submit(get_content, url): url for url in urls}
         for future in concurrent.futures.as_completed(future_to_url):
             url = future_to_url[future]
