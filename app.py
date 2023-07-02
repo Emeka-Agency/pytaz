@@ -40,14 +40,14 @@ def keywords_list(txt:str, nb_urls:int, nb_keywords:int):
 
 @app.get("/serper")
 async def get_serper(gl: str = "fr", hl: str = "fr"):
-    log_event(_message="/serper")
+    print("/serper")
     import time
     start = time.time()
     try:
         words = request.args.get("query")
-        log_taz_event(_message="query: %s"%(str(words)))
+        print("query: %s"%(str(words)))
         serper = fetch_google_search_results(words, gl, hl, num=10)
-        log_taz_event(_message="number of urls: %d"%(len(serper)))
+        print("number of urls: %d"%(len(serper)))
         response = {
             "status": "success",
             "datas": {
@@ -59,13 +59,13 @@ async def get_serper(gl: str = "fr", hl: str = "fr"):
                 "snippets": [item.get('snippet', None) for item in serper.get('organic', {})]
             },
         }
-        log_taz_event(_message="temps requête: %f"%(time.time() - start))
+        print("temps requête: %f"%(time.time() - start))
         return Response(
             status=200,
             response=json.dumps(response)
         )
     except Exception as e:
-        # log_taz_error(_message="error: %s"%(str(e)))
+        # print("error: %s"%(str(e)))
         return Response(
             status=500,
             response=json.dumps({
