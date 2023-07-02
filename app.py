@@ -38,6 +38,42 @@ def keywords_list(txt:str, nb_urls:int, nb_keywords:int):
     avg_frequencies = {word: freq/nb_urls + int(freq % nb_urls != 0) for word, freq in most_common_keywords}
     return [f"{word}:{freq}" for word, freq in avg_frequencies.items()]
 
+@app.get("/serper")
+async def get_serper(gl: str = "fr", hl: str = "fr"):
+    log_event(_message="/serper")
+    import time
+    start = time.time()
+    try:
+        words = request.args.get("query")
+        log_taz_event(_message="query: %s"%(str(words)))
+        serper = fetch_google_search_results(words, gl, hl, num=10)
+        log_taz_event(_message="number of urls: %d"%(len(serper)))
+        response = {
+            "status": "success",
+            "datas": {
+                "len_serper": len(serper),
+                "urls": [item.get('link', None) for item in serper.get('organic', {})],
+                "paa": serper['paa'],
+                "related": serper.get('related', {}),
+                "titles": [item.get('title', None) for item in serper.get('organic', {})],
+                "snippets": [item.get('snippet', None) for item in serper.get('organic', {})]
+            },
+        }
+        log_taz_event(_message="temps requête: %f"%(time.time() - start))
+        return Response(
+            status=200,
+            response=json.dumps(response)
+        )
+    except Exception as e:
+        # log_taz_error(_message="error: %s"%(str(e)))
+        return Response(
+            status=500,
+            response=json.dumps({
+                "status": "error",
+                "datas": str(e)
+            })
+        )
+        
 @app.get("/keywords")
 async def get_keywords(gl: str = "fr", hl: str = "fr", nb_keywords: int = NB_WORDS):
     import time
