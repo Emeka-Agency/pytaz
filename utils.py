@@ -34,7 +34,8 @@ def get_content(url: str) -> str:
         return None
 
 def get_url_content(url:str) -> str:
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    num_workers = 10
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
         future = executor.submit(get_content, url)
         try:
             content = future.result()
